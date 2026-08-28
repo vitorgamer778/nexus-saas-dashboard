@@ -6,6 +6,8 @@
 
 Nexus is a polished portfolio-grade SaaS application—not a static dashboard mockup. It includes responsive product navigation, searchable customer operations, billing surfaces, analytics, role-based workspace concepts, keyboard-first navigation, theme switching and a secure Supabase data model.
 
+### [View the live production demo →](https://nexus-saas-dashboard-tawny.vercel.app/dashboard)
+
 ## Highlights
 
 - Revenue cockpit with MRR, ARR, churn, acquisition and plan distribution
@@ -45,7 +47,7 @@ Server Components remain the default. Interactivity is isolated to small client 
 Requirements: Node.js 22+ and npm 10+.
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/vitorgamer778/nexus-saas-dashboard.git
 cd nexus-saas-dashboard
 npm install
 cp .env.example .env.local
@@ -96,3 +98,4 @@ GitHub Actions runs the complete quality gate with Node 22 and verifies desktop 
 ## License
 
 MIT — use, learn from and adapt this project with attribution appreciated.
+
