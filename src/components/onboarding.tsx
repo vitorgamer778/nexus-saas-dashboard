@@ -6,7 +6,11 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { switchWorkspace } from "@/app/(app)/workspace-actions";
 const steps = ["Welcome", "Workspace", "Goal", "Plan", "Team"];
-export function Onboarding() {
+export function Onboarding({
+  plans,
+}: {
+  plans: { id: string; name: string; priceMonthly: number }[];
+}) {
   const [i, setI] = useState(0),
     [workspaceName, setWorkspaceName] = useState(""),
     [goal, setGoal] = useState("Grow revenue"),
@@ -140,19 +144,14 @@ export function Onboarding() {
           )}
           {i === 3 && (
             <div className="grid grid-cols-2 gap-3">
-              {[
-                ["free", "Free · $0"],
-                ["starter", "Starter · $19"],
-                ["pro", "Pro · $49"],
-                ["business", "Business · $129"],
-              ].map(([id, label]) => (
+              {plans.map(({ id, name, priceMonthly }) => (
                 <button
                   key={id}
                   onClick={() => setPlan(id)}
                   aria-pressed={plan === id}
                   className={`rounded-xl border p-4 text-left text-sm hover:border-primary hover:bg-primary/5 ${plan === id ? "border-primary bg-primary/10" : ""}`}
                 >
-                  {label}
+                  {name} · ${priceMonthly}
                 </button>
               ))}
             </div>

@@ -199,6 +199,62 @@ export async function getPlans() {
   return data ?? [];
 }
 
+export async function getSubscriptionOverview() {
+  const [supabase, workspace] = await Promise.all([
+    createClient(),
+    getCurrentWorkspace(),
+  ]);
+  if (!supabase || !workspace) return null;
+  const [plansResult, workspaceResult, subscriptionsResult] = await Promise.all(
+    [
+      supabase
+        .from("plans")
+        .select("id,name,price_monthly,features")
+        .order("price_monthly"),
+      supabase
+        .from("workspaces")
+        .select("plan_id")
+        .eq("id", workspace.id)
+        .single(),
+      supabase
+        .from("subscriptions")
+        .select("plan_id,status,amount")
+        .eq("workspace_id", workspace.id),
+    ],
+  );
+  if (plansResult.error) throw plansResult.error;
+  if (workspaceResult.error) throw workspaceResult.error;
+  if (subscriptionsResult.error) throw subscriptionsResult.error;
+  const subscriptions = subscriptionsResult.data ?? [];
+  return {
+    currentPlanId: workspaceResult.data.plan_id,
+    canChangePlan: workspace.role === "owner" || workspace.role === "admin",
+    plans: (plansResult.data ?? []).map((plan) => {
+      const planSubscriptions = subscriptions.filter(
+        (item) => item.plan_id === plan.id,
+      );
+      return {
+        id: plan.id,
+        name: plan.name,
+        priceMonthly: Number(plan.price_monthly),
+        features: Array.isArray(plan.features) ? plan.features.map(String) : [],
+        customerCount: planSubscriptions.length,
+        revenue: planSubscriptions.reduce(
+          (total, item) => total + Number(item.amount),
+          0,
+        ),
+        statuses: planSubscriptions.reduce<Record<string, number>>(
+          (counts, item) => {
+            counts[item.status] = (counts[item.status] ?? 0) + 1;
+            return counts;
+          },
+          {},
+        ),
+      };
+    }),
+  };
+}
+
 export async function getTeam() {
   const [supabase, workspace, identity] = await Promise.all([
     createClient(),
