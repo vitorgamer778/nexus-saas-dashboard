@@ -2,14 +2,14 @@ import { AppShell } from "@/components/app-shell";
 import { AppShellLoading } from "@/components/app-shell-loading";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { redirect } from "next/navigation";
-import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
+import {
+  getCurrentIdentity,
+  getCurrentWorkspace,
+  getUserWorkspaces,
+} from "@/lib/workspace";
 import { Suspense } from "react";
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={<AppShellLoading />}>
       <AuthenticatedShell>{children}</AuthenticatedShell>
@@ -19,9 +19,10 @@ export default function Layout({
 
 async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   if (!getSupabaseEnv()) redirect("/login?error=configuration");
-  const [identity, workspace] = await Promise.all([
+  const [identity, workspace, workspaces] = await Promise.all([
     getCurrentIdentity(),
     getCurrentWorkspace(),
+    getUserWorkspaces(),
   ]);
   if (!identity) redirect("/login");
   if (!workspace) redirect("/onboarding");
@@ -32,7 +33,8 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
         name: identity.name,
         avatarUrl: identity.avatarUrl,
       }}
-      workspace={{ name: workspace.name, role: workspace.role }}
+      workspace={workspace}
+      workspaces={workspaces}
     >
       {children}
     </AppShell>

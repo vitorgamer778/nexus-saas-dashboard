@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Input } from "./ui";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { switchWorkspace } from "@/app/(app)/workspace-actions";
 const steps = ["Welcome", "Workspace", "Goal", "Plan", "Team"];
 export function Onboarding() {
   const [i, setI] = useState(0),
@@ -30,13 +31,18 @@ export function Onboarding() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
       const slug = `${base}-${auth.user.id.slice(0, 6)}`;
-      const { error: workspaceError } = await supabase.rpc("create_workspace", {
-        workspace_name: name,
-        workspace_slug: slug,
-        selected_goal: goal,
-        selected_plan: plan,
-      });
+      const { data: workspaceId, error: workspaceError } = await supabase.rpc(
+        "create_workspace",
+        {
+          workspace_name: name,
+          workspace_slug: slug,
+          selected_goal: goal,
+          selected_plan: plan,
+        },
+      );
       if (workspaceError) throw workspaceError;
+      if (!workspaceId) throw new Error("The workspace could not be selected.");
+      await switchWorkspace(workspaceId);
       router.push("/dashboard");
       router.refresh();
     } catch (reason) {

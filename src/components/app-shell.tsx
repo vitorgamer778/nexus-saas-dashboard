@@ -25,6 +25,8 @@ import {
 import { Avatar, Button } from "./ui";
 import { cn } from "@/lib/utils";
 import { displayInitials } from "@/lib/display";
+import { WorkspaceSwitcher } from "./workspace-switcher";
+import type { UserWorkspace } from "@/lib/workspace-selection";
 const nav = [
   ["/dashboard", "Overview", LayoutDashboard],
   ["/customers", "Customers", Users],
@@ -38,10 +40,12 @@ export function AppShell({
   children,
   user,
   workspace,
+  workspaces,
 }: {
   children: React.ReactNode;
   user: { name: string; email: string | null; avatarUrl: string | null };
-  workspace: { name: string; role: string };
+  workspace: UserWorkspace;
+  workspaces: UserWorkspace[];
 }) {
   const path = usePathname(),
     router = useRouter(),
@@ -96,18 +100,10 @@ export function AppShell({
             <X className="size-5" />
           </button>
         </div>
-        <button className="mt-4 flex w-full items-center gap-3 rounded-xl border border-border p-2.5 text-left hover:bg-muted">
-          <span className="grid size-8 place-items-center rounded-lg bg-violet-500/10 text-xs font-bold text-violet-500">
-            {workspace.name.slice(0, 2).toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1">
-            <b className="block truncate text-sm">{workspace.name}</b>
-            <span className="block text-xs text-muted-foreground">
-              {workspace.role} workspace
-            </span>
-          </span>
-          <ChevronDown className="size-4 text-muted-foreground" />
-        </button>
+        <WorkspaceSwitcher
+          activeWorkspace={workspace}
+          workspaces={workspaces}
+        />
         <nav className="mt-6 space-y-1" aria-label="Main navigation">
           {nav.map(([href, label, Icon]) => (
             <Link
@@ -244,4 +240,3 @@ export function AppShell({
     </div>
   );
 }
-
