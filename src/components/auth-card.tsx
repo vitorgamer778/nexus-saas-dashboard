@@ -5,7 +5,15 @@ import { useState } from "react";
 import { Button, Card, Input } from "./ui";
 import { GitBranch, LoaderCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-export function AuthCard({ mode }: { mode: "login" | "register" | "forgot" }) {
+export function AuthCard({
+  mode,
+  next = "/dashboard",
+  message,
+}: {
+  mode: "login" | "register" | "forgot";
+  next?: string;
+  message?: string;
+}) {
   const router = useRouter(),
     [loading, setLoading] = useState(false),
     [error, setError] = useState("");
@@ -16,9 +24,19 @@ export function AuthCard({ mode }: { mode: "login" | "register" | "forgot" }) {
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email"));
     const password = String(form.get("password"));
-    const supabase = createClient();
-    if (!supabase) {
-      router.push(mode === "register" ? "/onboarding" : "/dashboard");
+    const callback = new URL("/auth/callback", location.origin);
+    callback.searchParams.set(
+      "next",
+      mode === "register" ? "/onboarding" : next,
+    );
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      setError(
+        "Authentication is temporarily unavailable. Please try again later.",
+      );
+      setLoading(false);
       return;
     }
     const result =
@@ -28,7 +46,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" | "forgot" }) {
           ? await supabase.auth.signUp({
               email,
               password,
-              options: { emailRedirectTo: `${location.origin}/auth/callback` },
+              options: { emailRedirectTo: callback.toString() },
             })
           : await supabase.auth.resetPasswordForEmail(email, {
               redirectTo: `${location.origin}/auth/callback?next=/reset-password`,
@@ -43,16 +61,27 @@ export function AuthCard({ mode }: { mode: "login" | "register" | "forgot" }) {
         ? "/onboarding"
         : mode === "forgot"
           ? "/login?reset=sent"
-          : "/dashboard",
+          : next,
     );
   };
   const oauth = async () => {
-    const supabase = createClient();
-    if (!supabase) return router.push("/dashboard");
-    await supabase.auth.signInWithOAuth({
+    setError("");
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      setError(
+        "Authentication is temporarily unavailable. Please try again later.",
+      );
+      return;
+    }
+    const callback = new URL("/auth/callback", location.origin);
+    callback.searchParams.set("next", next);
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: callback.toString() },
     });
+    if (error) setError(error.message);
   };
   return (
     <Card className="w-full max-w-md p-7 shadow-2xl">
@@ -73,6 +102,11 @@ export function AuthCard({ mode }: { mode: "login" | "register" | "forgot" }) {
             : "Continue to your Nexus workspace."}
         </p>
       </div>
+      {message && (
+        <p className="mb-5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          {message}
+        </p>
+      )}
       {mode !== "forgot" && (
         <>
           <Button

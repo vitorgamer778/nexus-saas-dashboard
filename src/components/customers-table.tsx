@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { customers } from "@/lib/data";
+import type { CustomerView } from "@/lib/queries";
 import { Avatar, Badge, Button, Card, Input } from "./ui";
 import {
   Search,
@@ -10,14 +10,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-export function CustomersTable() {
+export function CustomersTable({ customers }: { customers: CustomerView[] }) {
   const [q, setQ] = useState("");
   const rows = useMemo(
     () =>
       customers.filter((c) =>
         (c.name + c.company + c.email).toLowerCase().includes(q.toLowerCase()),
       ),
-    [q],
+    [customers, q],
   );
   return (
     <Card className="overflow-hidden">

@@ -1,20 +1,25 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { getSupabaseEnv } from "./env";
+
 export async function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
-    key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
+  const env = getSupabaseEnv();
+  if (!env) return null;
   const store = await cookies();
-  return createServerClient(url, key, {
+  return createServerClient(env.url, env.key, {
     cookies: {
       getAll: () => store.getAll(),
-      setAll(values) {
+      setAll(values, headers) {
+        void headers;
         try {
           values.forEach(({ name, value, options }) =>
             store.set(name, value, options),
           );
-        } catch {}
+        } catch {
+          // Server Components cannot persist refreshed cookies or response
+          // headers. Proxy handles both before rendering protected routes.
+        }
       },
     },
   });

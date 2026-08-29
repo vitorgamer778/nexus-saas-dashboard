@@ -1,4 +1,4 @@
-import { customers, transactions } from "@/lib/data";
+import { getCustomer, getCustomerTransactions } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import { Avatar, Badge, Button, Card } from "@/components/ui";
 import { PageHead, SectionTitle } from "@/components/page-kit";
@@ -9,8 +9,11 @@ export default async function Customer({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params,
-    c = customers.find((x) => x.id === id);
+  const { id } = await params;
+  const [c, transactions] = await Promise.all([
+    getCustomer(id),
+    getCustomerTransactions(id),
+  ]);
   if (!c) notFound();
   return (
     <>

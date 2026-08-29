@@ -3,10 +3,51 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Input } from "./ui";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 const steps = ["Welcome", "Workspace", "Goal", "Plan", "Team"];
 export function Onboarding() {
   const [i, setI] = useState(0),
+    [workspaceName, setWorkspaceName] = useState(""),
+    [goal, setGoal] = useState("Grow revenue"),
+    [plan, setPlan] = useState("free"),
+    [error, setError] = useState(""),
+    [saving, setSaving] = useState(false),
     router = useRouter();
+  const finish = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user)
+        throw new Error("Your session expired. Please sign in again.");
+      const name = workspaceName.trim();
+      if (name.length < 2) throw new Error("Enter a workspace name.");
+      const base = name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      const slug = `${base}-${auth.user.id.slice(0, 6)}`;
+      const { error: workspaceError } = await supabase.rpc("create_workspace", {
+        workspace_name: name,
+        workspace_slug: slug,
+        selected_goal: goal,
+        selected_plan: plan,
+      });
+      if (workspaceError) throw workspaceError;
+      router.push("/dashboard");
+      router.refresh();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Could not create the workspace.",
+      );
+      setSaving(false);
+    }
+  };
   return (
     <div className="mx-auto max-w-2xl">
       <div
@@ -64,7 +105,12 @@ export function Onboarding() {
           {i === 1 && (
             <label className="text-sm font-medium">
               Workspace name
-              <Input className="mt-2" defaultValue="Orbit Labs" />
+              <Input
+                className="mt-2"
+                value={workspaceName}
+                onChange={(event) => setWorkspaceName(event.target.value)}
+                placeholder="Acme Inc."
+              />
             </label>
           )}
           {i === 2 && (
@@ -77,7 +123,9 @@ export function Onboarding() {
               ].map((x) => (
                 <button
                   key={x}
-                  className="rounded-xl border p-4 text-left text-sm hover:border-primary hover:bg-primary/5"
+                  onClick={() => setGoal(x)}
+                  aria-pressed={goal === x}
+                  className={`rounded-xl border p-4 text-left text-sm hover:border-primary hover:bg-primary/5 ${goal === x ? "border-primary bg-primary/10" : ""}`}
                 >
                   {x}
                 </button>
@@ -87,16 +135,18 @@ export function Onboarding() {
           {i === 3 && (
             <div className="grid grid-cols-2 gap-3">
               {[
-                "Free · $0",
-                "Starter · $19",
-                "Pro · $49",
-                "Business · $129",
-              ].map((x) => (
+                ["free", "Free · $0"],
+                ["starter", "Starter · $19"],
+                ["pro", "Pro · $49"],
+                ["business", "Business · $129"],
+              ].map(([id, label]) => (
                 <button
-                  key={x}
-                  className="rounded-xl border p-4 text-left text-sm hover:border-primary hover:bg-primary/5"
+                  key={id}
+                  onClick={() => setPlan(id)}
+                  aria-pressed={plan === id}
+                  className={`rounded-xl border p-4 text-left text-sm hover:border-primary hover:bg-primary/5 ${plan === id ? "border-primary bg-primary/10" : ""}`}
                 >
-                  {x}
+                  {label}
                 </button>
               ))}
             </div>
@@ -108,6 +158,14 @@ export function Onboarding() {
             </div>
           )}
         </div>
+        {error && (
+          <p
+            role="alert"
+            className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-500"
+          >
+            {error}
+          </p>
+        )}
         <div className="mt-8 flex justify-between border-t pt-5">
           <Button
             variant="ghost"
@@ -118,11 +176,14 @@ export function Onboarding() {
             Back
           </Button>
           <Button
-            onClick={() =>
-              i === steps.length - 1 ? router.push("/dashboard") : setI(i + 1)
-            }
+            disabled={saving || (i === 1 && workspaceName.trim().length < 2)}
+            onClick={() => (i === steps.length - 1 ? finish() : setI(i + 1))}
           >
-            {i === steps.length - 1 ? "Open dashboard" : "Continue"}
+            {i === steps.length - 1
+              ? saving
+                ? "Creating…"
+                : "Open dashboard"
+              : "Continue"}
             <ArrowRight className="size-4" />
           </Button>
         </div>

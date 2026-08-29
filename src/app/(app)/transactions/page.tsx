@@ -1,8 +1,22 @@
-import { transactions } from "@/lib/data";
+import { getTransactions } from "@/lib/queries";
 import { Badge, Card, Input } from "@/components/ui";
 import { PageHead, Metric } from "@/components/page-kit";
 import { Search } from "lucide-react";
-export default function Transactions() {
+export default async function Transactions() {
+  const transactions = await getTransactions();
+  const gross = transactions
+    .filter((item) => item.status === "Approved")
+    .reduce((total, item) => total + item.value, 0);
+  const refunded = transactions
+    .filter((item) => item.status === "Refunded")
+    .reduce((total, item) => total + item.value, 0);
+  const successRate = transactions.length
+    ? Math.round(
+        (transactions.filter((item) => item.status === "Approved").length /
+          transactions.length) *
+          100,
+      )
+    : 0;
   return (
     <>
       <PageHead
@@ -10,9 +24,18 @@ export default function Transactions() {
         description="Track payments, refunds and failed charges."
       />
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
-        <Metric label="Gross volume" value="$84,290" change="9.3%" />
-        <Metric label="Successful" value="98.4%" change="1.2%" />
-        <Metric label="Refunded" value="$2,840" change="0.8%" down />
+        <Metric
+          label="Gross volume"
+          value={`$${gross.toLocaleString()}`}
+          change="Live"
+        />
+        <Metric label="Successful" value={`${successRate}%`} change="Live" />
+        <Metric
+          label="Refunded"
+          value={`$${refunded.toLocaleString()}`}
+          change="Live"
+          down
+        />
       </div>
       <Card className="overflow-hidden">
         <div className="border-b p-4">

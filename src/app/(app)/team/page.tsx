@@ -1,8 +1,9 @@
-import { members } from "@/lib/data";
+import { getTeam } from "@/lib/queries";
 import { Avatar, Badge, Button, Card } from "@/components/ui";
 import { PageHead } from "@/components/page-kit";
 import { MoreHorizontal, Plus } from "lucide-react";
-export default function Team() {
+export default async function Team() {
+  const members = await getTeam();
   return (
     <>
       <PageHead
@@ -28,15 +29,15 @@ export default function Team() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m, i) => (
-                <tr key={m.email} className="border-t">
+              {members.map((m) => (
+                <tr key={m.name + m.role} className="border-t">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar initials={m.initials} />
                       <div>
                         <b className="block">{m.name}</b>
                         <span className="text-xs text-muted-foreground">
-                          {m.title} · {m.email}
+                          Joined {m.joined}
                         </span>
                       </div>
                     </div>
@@ -45,12 +46,10 @@ export default function Team() {
                     <Badge tone="blue">{m.role}</Badge>
                   </td>
                   <td className="px-5">
-                    <Badge tone={m.status === "Active" ? "green" : "amber"}>
-                      {m.status}
-                    </Badge>
+                    <Badge tone="green">Active</Badge>
                   </td>
                   <td className="px-5 text-muted-foreground">
-                    {i ? "Today, 09:42" : "Online now"}
+                    Secured by Supabase
                   </td>
                   <td>
                     <Button

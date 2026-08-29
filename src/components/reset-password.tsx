@@ -9,8 +9,13 @@ export function ResetPassword() {
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const password = String(new FormData(event.currentTarget).get("password"));
-    const client = createClient();
-    if (!client) return router.push("/dashboard");
+    let client;
+    try {
+      client = createClient();
+    } catch {
+      setError("Password reset is temporarily unavailable.");
+      return;
+    }
     const result = await client.auth.updateUser({ password });
     if (result.error) return setError(result.error.message);
     router.push("/dashboard");

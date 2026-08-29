@@ -1,13 +1,10 @@
 import { Badge, Button, Card } from "@/components/ui";
 import { PageHead, Metric } from "@/components/page-kit";
 import { Check } from "lucide-react";
-const plans = [
-  ["Free", "$0", "For small personal projects"],
-  ["Starter", "$19", "For early-stage teams"],
-  ["Pro", "$49", "For scaling companies"],
-  ["Business", "$129", "For advanced operations"],
-];
-export default function Subscriptions() {
+import { getPlans } from "@/lib/queries";
+
+export default async function Subscriptions() {
+  const plans = await getPlans();
   return (
     <>
       <PageHead
@@ -15,23 +12,37 @@ export default function Subscriptions() {
         description="Plans, billing cycles and recurring revenue."
       />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Metric label="Active subscriptions" value="1,182" change="7.6%" />
-        <Metric label="Upcoming revenue" value="$42,940" change="11.3%" />
-        <Metric label="Past due" value="18" change="2.4%" down />
+        <Metric
+          label="Available plans"
+          value={String(plans.length)}
+          change="Live"
+        />
+        <Metric
+          label="Starting at"
+          value={
+            plans.length
+              ? `$${Math.min(...plans.map((plan) => Number(plan.price_monthly)))}`
+              : "$0"
+          }
+          change="Live"
+        />
+        <Metric label="Billing source" value="Supabase" change="Secure" />
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {plans.map((p, i) => (
+        {plans.map((plan, i) => (
           <Card
-            key={p[0]}
+            key={plan.id}
             className={`p-5 ${i === 2 ? "ring-2 ring-primary" : ""}`}
           >
             <div className="flex justify-between">
-              <h2 className="font-semibold">{p[0]}</h2>
+              <h2 className="font-semibold">{plan.name}</h2>
               {i === 2 && <Badge tone="blue">Popular</Badge>}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">{p[2]}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              A flexible plan for your workspace.
+            </p>
             <p className="mt-6 text-3xl font-semibold">
-              {p[1]}
+              ${Number(plan.price_monthly)}
               <span className="text-sm font-normal text-muted-foreground">
                 {" "}
                 /mo
@@ -44,17 +55,14 @@ export default function Subscriptions() {
               {i === 3 ? "Current plan" : "Choose plan"}
             </Button>
             <div className="mt-5 space-y-3 text-sm">
-              {[
-                "Unlimited projects",
-                `${i ? 10 * i : 2} team seats`,
-                "Advanced analytics",
-                "Email support",
-              ].map((x) => (
-                <p className="flex gap-2" key={x}>
-                  <Check className="size-4 text-emerald-500" />
-                  {x}
-                </p>
-              ))}
+              {(Array.isArray(plan.features) ? plan.features : []).map(
+                (x: unknown) => (
+                  <p className="flex gap-2" key={String(x)}>
+                    <Check className="size-4 text-emerald-500" />
+                    {String(x)}
+                  </p>
+                ),
+              )}
             </div>
           </Card>
         ))}

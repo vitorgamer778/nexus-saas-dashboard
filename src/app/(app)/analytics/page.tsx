@@ -1,7 +1,31 @@
 import { RevenueChart } from "@/components/dashboard-chart";
 import { Card } from "@/components/ui";
 import { Metric, PageHead, SectionTitle } from "@/components/page-kit";
-export default function Analytics() {
+import { getCustomers, getTransactions } from "@/lib/queries";
+
+export default async function Analytics() {
+  const [customers, transactions] = await Promise.all([
+    getCustomers(),
+    getTransactions(),
+  ]);
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const value = new Date();
+    value.setMonth(value.getMonth() - (5 - index));
+    return {
+      key: `${value.getFullYear()}-${value.getMonth()}`,
+      month: value.toLocaleString("en-US", { month: "short" }),
+      value: 0,
+    };
+  });
+  transactions
+    .filter((item) => item.status === "Approved")
+    .forEach((item) => {
+      const value = new Date(item.processedAt);
+      const bucket = months.find(
+        (month) => month.key === `${value.getFullYear()}-${value.getMonth()}`,
+      );
+      if (bucket) bucket.value += item.value;
+    });
   return (
     <>
       <PageHead
@@ -9,10 +33,32 @@ export default function Analytics() {
         description="Understand acquisition, engagement and conversion."
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Visitors" value="24,892" change="18.2%" />
-        <Metric label="Sessions" value="38,104" change="14.8%" />
-        <Metric label="Conversions" value="1,284" change="6.8%" />
-        <Metric label="Conversion rate" value="5.16%" change="0.7%" />
+        <Metric
+          label="Customers"
+          value={String(customers.length)}
+          change="Live"
+        />
+        <Metric
+          label="Transactions"
+          value={String(transactions.length)}
+          change="Live"
+        />
+        <Metric
+          label="Approved"
+          value={String(
+            transactions.filter((item) => item.status === "Approved").length,
+          )}
+          change="Live"
+        />
+        <Metric
+          label="Approval rate"
+          value={
+            transactions.length
+              ? `${Math.round((transactions.filter((item) => item.status === "Approved").length / transactions.length) * 100)}%`
+              : "0%"
+          }
+          change="Live"
+        />
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <Card className="overflow-hidden">
@@ -21,7 +67,7 @@ export default function Analytics() {
             description="Daily qualified traffic trend"
           />
           <div className="p-4">
-            <RevenueChart />
+            <RevenueChart data={months} />
           </div>
         </Card>
         <Card className="p-5">

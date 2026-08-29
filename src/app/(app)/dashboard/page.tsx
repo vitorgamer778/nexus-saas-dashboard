@@ -1,15 +1,59 @@
 import { RevenueChart, PlansChart } from "@/components/dashboard-chart";
 import { Badge, Button, Card } from "@/components/ui";
 import { Metric, PageHead, SectionTitle } from "@/components/page-kit";
-import { customers } from "@/lib/data";
+import { getCustomers, getTransactions } from "@/lib/queries";
+import { getCurrentWorkspace } from "@/lib/workspace";
+import { createClient } from "@/lib/supabase/server";
 import { ArrowRight, CalendarDays, Sparkles } from "lucide-react";
 import Link from "next/link";
-export default function Dashboard() {
+export default async function Dashboard() {
+  const [customers, transactions, workspace, supabase] = await Promise.all([
+    getCustomers(),
+    getTransactions(),
+    getCurrentWorkspace(),
+    createClient(),
+  ]);
+  const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+  const firstName =
+    user?.user_metadata?.full_name?.split(" ")[0] ??
+    user?.email?.split("@")[0] ??
+    "there";
+  const mrr = customers.reduce((total, customer) => total + customer.mrr, 0);
+  const active = customers.filter(
+    (customer) => customer.status === "Active",
+  ).length;
+  const churn = customers.length
+    ? (customers.filter((customer) => customer.status === "Canceled").length /
+        customers.length) *
+      100
+    : 0;
+  const months = Array.from({ length: 6 }, (_, index) => {
+    const value = new Date();
+    value.setMonth(value.getMonth() - (5 - index));
+    return {
+      key: `${value.getFullYear()}-${value.getMonth()}`,
+      month: value.toLocaleString("en-US", { month: "short" }),
+      value: 0,
+    };
+  });
+  for (const transaction of transactions) {
+    if (transaction.status !== "Approved") continue;
+    const value = new Date(transaction.processedAt);
+    const bucket = months.find(
+      (month) => month.key === `${value.getFullYear()}-${value.getMonth()}`,
+    );
+    if (bucket) bucket.value += transaction.value;
+  }
+  const planCounts = new Map<string, number>();
+  customers.forEach((customer) =>
+    planCounts.set(customer.plan, (planCounts.get(customer.plan) ?? 0) + 1),
+  );
+  const planData = [...planCounts].map(([name, value]) => ({ name, value }));
   return (
     <>
       <PageHead
-        title="Good morning, Isabela"
-        description="Here’s what’s happening with Orbit Labs today."
+        title={`Good morning, ${firstName}`}
+        description={`Here’s what’s happening with ${workspace?.name ?? "your workspace"} today.`}
         action={
           <Button variant="outline">
             <CalendarDays className="size-4" />
@@ -37,15 +81,19 @@ export default function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           label="Monthly recurring revenue"
-          value="$46,820"
-          change="12.4%"
+          value={`$${mrr.toLocaleString()}`}
+          change="Live"
         />
-        <Metric label="Annual run rate" value="$561.8K" change="8.2%" />
-        <Metric label="Active customers" value="1,284" change="6.8%" />
+        <Metric
+          label="Annual run rate"
+          value={`$${(mrr * 12).toLocaleString()}`}
+          change="Live"
+        />
+        <Metric label="Active customers" value={String(active)} change="Live" />
         <Metric
           label="Churn rate"
-          value="2.1%"
-          change="0.3%"
+          value={`${churn.toFixed(1)}%`}
+          change="Live"
           down
           detail="lower is better"
         />
@@ -55,10 +103,10 @@ export default function Dashboard() {
           <SectionTitle
             title="Revenue growth"
             description="MRR performance over the last 6 months"
-            aside={<Badge tone="green">+31.6% overall</Badge>}
+            aside={<Badge tone="green">Live data</Badge>}
           />
           <div className="p-4">
-            <RevenueChart />
+            <RevenueChart data={months} />
           </div>
         </Card>
         <Card className="animate-rise delay-2 overflow-hidden">
@@ -66,7 +114,13 @@ export default function Dashboard() {
             title="Customers by plan"
             description="Current distribution"
           />
-          <PlansChart />
+          {planData.length ? (
+            <PlansChart data={planData} />
+          ) : (
+            <p className="p-8 text-sm text-muted-foreground">
+              Plan distribution will appear after you add customers.
+            </p>
+          )}
         </Card>
       </div>
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.45fr_1fr]">

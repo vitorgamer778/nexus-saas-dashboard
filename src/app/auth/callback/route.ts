@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 export async function GET(request: Request) {
   const url = new URL(request.url),
     code = url.searchParams.get("code"),
-    next = url.searchParams.get("next")?.startsWith("/")
-      ? url.searchParams.get("next")!
-      : "/dashboard";
+    next = safeRedirectPath(url.searchParams.get("next"));
   if (code) {
     const client = await createClient();
-    const { error } = await client!.auth.exchangeCodeForSession(code);
+    if (!client) {
+      return NextResponse.redirect(
+        new URL("/login?error=configuration", url.origin),
+      );
+    }
+    const { error } = await client.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(new URL(next, url.origin));
   }
   return NextResponse.redirect(

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
@@ -19,6 +19,7 @@ import {
   Moon,
   Bell,
   ChevronDown,
+  LogOut,
   Plus,
 } from "lucide-react";
 import { Button } from "./ui";
@@ -32,11 +33,33 @@ const nav = [
   ["/team", "Team", UserRoundCog],
   ["/settings", "Settings", Settings],
 ] as const;
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  user,
+  workspace,
+}: {
+  children: React.ReactNode;
+  user: { name: string; email: string };
+  workspace: { name: string; role: string };
+}) {
   const path = usePathname(),
+    router = useRouter(),
     [mobile, setMobile] = useState(false),
-    [cmd, setCmd] = useState(false);
+    [cmd, setCmd] = useState(false),
+    [accountOpen, setAccountOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+  const initials = user.name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const signOut = async () => {
+    const { createClient } = await import("@/lib/supabase/client");
+    await createClient().auth.signOut();
+    router.replace("/login");
+    router.refresh();
+  };
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -79,12 +102,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <button className="mt-4 flex w-full items-center gap-3 rounded-xl border border-border p-2.5 text-left hover:bg-muted">
           <span className="grid size-8 place-items-center rounded-lg bg-violet-500/10 text-xs font-bold text-violet-500">
-            OL
+            {workspace.name.slice(0, 2).toUpperCase()}
           </span>
           <span className="min-w-0 flex-1">
-            <b className="block truncate text-sm">Orbit Labs</b>
+            <b className="block truncate text-sm">{workspace.name}</b>
             <span className="block text-xs text-muted-foreground">
-              Business workspace
+              {workspace.role} workspace
             </span>
           </span>
           <ChevronDown className="size-4 text-muted-foreground" />
@@ -109,18 +132,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="absolute inset-x-4 bottom-4 rounded-xl border border-border p-3">
           <div className="flex items-center gap-2">
             <span className="grid size-9 place-items-center rounded-full bg-emerald-500/15 text-xs font-semibold text-emerald-500">
-              IR
+              {initials || "NA"}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">Isabela Rocha</p>
+              <p className="truncate text-sm font-medium">{user.name}</p>
               <p className="truncate text-xs text-muted-foreground">
-                isabela@nexus.app
+                {user.email}
               </p>
             </div>
-            <button aria-label="Account options">
+            <button
+              aria-label="Account options"
+              aria-expanded={accountOpen}
+              onClick={() => setAccountOpen((value) => !value)}
+            >
               <ChevronDown className="size-4" />
             </button>
           </div>
+          {accountOpen && (
+            <button
+              className="mt-3 flex w-full items-center gap-2 rounded-lg border-t px-2 pt-3 text-sm text-muted-foreground hover:text-foreground"
+              onClick={signOut}
+            >
+              <LogOut className="size-4" />
+              Sign out
+            </button>
+          )}
         </div>
       </aside>
       {mobile && (
