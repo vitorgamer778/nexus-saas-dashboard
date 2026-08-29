@@ -62,10 +62,17 @@ export function Badge({
     </span>
   );
 }
-export function Avatar({ initials }: { initials: string }) {
+export function Avatar({
+  initials,
+  avatarUrl,
+}: {
+  initials: string;
+  avatarUrl?: string | null;
+}) {
   return (
     <span
-      className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
+      className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 bg-cover bg-center text-xs font-semibold text-primary"
+      style={avatarUrl ? { backgroundImage: `url(${JSON.stringify(avatarUrl)})` } : undefined}
       aria-hidden="true"
     >
       {initials}

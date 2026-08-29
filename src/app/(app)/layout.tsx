@@ -1,27 +1,36 @@
 import { AppShell } from "@/components/app-shell";
-import { createClient } from "@/lib/supabase/server";
+import { AppShellLoading } from "@/components/app-shell-loading";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 import { redirect } from "next/navigation";
-import { getCurrentWorkspace } from "@/lib/workspace";
+import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
+import { Suspense } from "react";
 
-export default async function Layout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  if (!supabase) redirect("/login?error=configuration");
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-  const workspace = await getCurrentWorkspace();
+  return (
+    <Suspense fallback={<AppShellLoading />}>
+      <AuthenticatedShell>{children}</AuthenticatedShell>
+    </Suspense>
+  );
+}
+
+async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
+  if (!getSupabaseEnv()) redirect("/login?error=configuration");
+  const [identity, workspace] = await Promise.all([
+    getCurrentIdentity(),
+    getCurrentWorkspace(),
+  ]);
+  if (!identity) redirect("/login");
   if (!workspace) redirect("/onboarding");
   return (
     <AppShell
       user={{
-        email: data.user.email ?? "",
-        name:
-          data.user.user_metadata?.full_name ??
-          data.user.email?.split("@")[0] ??
-          "Account",
+        email: identity.email,
+        name: identity.name,
+        avatarUrl: identity.avatarUrl,
       }}
       workspace={{ name: workspace.name, role: workspace.role }}
     >

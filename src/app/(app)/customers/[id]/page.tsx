@@ -67,9 +67,12 @@ export default async function Customer({
             <h2 className="font-semibold">Internal notes</h2>
             <textarea
               className="mt-3 min-h-28 w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              defaultValue="Strong product adoption. Interested in annual Business plan at next renewal."
+              placeholder="No notes have been added for this customer."
+              disabled
             />
-            <Button className="mt-2">Save note</Button>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Notes will be enabled when persistent note storage is configured.
+            </p>
           </Card>
         </div>
         <Card className="overflow-hidden">

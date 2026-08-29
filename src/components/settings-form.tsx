@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button, Card, Input } from "./ui";
 const tabs = [
   "General",
@@ -15,7 +14,13 @@ const tabs = [
   "Appearance",
   "Danger Zone",
 ];
-export function SettingsForm() {
+export function SettingsForm({
+  identity,
+  workspace,
+}: {
+  identity: { name: string; email: string };
+  workspace: { name: string; slug: string; role: string };
+}) {
   const [tab, setTab] = useState("General");
   return (
     <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
@@ -47,41 +52,39 @@ export function SettingsForm() {
             <Button
               variant="danger"
               className="mt-4"
-              onClick={() =>
-                toast.error("Destructive action blocked in demo mode")
-              }
+              disabled
             >
-              Delete workspace
+              Owner confirmation required
             </Button>
           </div>
         ) : (
-          <form
-            className="mt-7 max-w-xl space-y-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              toast.success(`${tab} settings saved`);
-            }}
-          >
+          <div className="mt-7 max-w-xl space-y-5">
             <label className="block text-sm font-medium">
               Workspace name
-              <Input className="mt-2" defaultValue="Orbit Labs" />
+              <Input className="mt-2" value={workspace.name} readOnly />
             </label>
             <label className="block text-sm font-medium">
-              Workspace URL
-              <Input className="mt-2" defaultValue="nexus.app/orbit-labs" />
+              Workspace slug
+              <Input
+                className="mt-2"
+                value={workspace.slug || "Slug unavailable"}
+                readOnly
+              />
             </label>
             <label className="block text-sm font-medium">
-              Contact email
+              Signed-in account
               <Input
                 className="mt-2"
                 type="email"
-                defaultValue="hello@orbitlabs.io"
+                value={identity.email}
+                readOnly
               />
             </label>
-            <div className="flex justify-end border-t pt-5">
-              <Button type="submit">Save changes</Button>
+            <div className="flex items-center justify-between border-t pt-5 text-sm text-muted-foreground">
+              <span>{identity.name}</span>
+              <span className="capitalize">{workspace.role}</span>
             </div>
-          </form>
+          </div>
         )}
       </Card>
     </div>

@@ -22,8 +22,9 @@ import {
   LogOut,
   Plus,
 } from "lucide-react";
-import { Button } from "./ui";
+import { Avatar, Button } from "./ui";
 import { cn } from "@/lib/utils";
+import { displayInitials } from "@/lib/display";
 const nav = [
   ["/dashboard", "Overview", LayoutDashboard],
   ["/customers", "Customers", Users],
@@ -39,7 +40,7 @@ export function AppShell({
   workspace,
 }: {
   children: React.ReactNode;
-  user: { name: string; email: string };
+  user: { name: string; email: string | null; avatarUrl: string | null };
   workspace: { name: string; role: string };
 }) {
   const path = usePathname(),
@@ -48,12 +49,7 @@ export function AppShell({
     [cmd, setCmd] = useState(false),
     [accountOpen, setAccountOpen] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = displayInitials(user.name);
   const signOut = async () => {
     const { createClient } = await import("@/lib/supabase/client");
     await createClient().auth.signOut();
@@ -131,13 +127,11 @@ export function AppShell({
         </nav>
         <div className="absolute inset-x-4 bottom-4 rounded-xl border border-border p-3">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-full bg-emerald-500/15 text-xs font-semibold text-emerald-500">
-              {initials || "NA"}
-            </span>
+            <Avatar initials={initials} avatarUrl={user.avatarUrl} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{user.name}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {user.email}
+                {user.email ?? "Email unavailable"}
               </p>
             </div>
             <button

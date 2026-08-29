@@ -30,10 +30,10 @@ export default async function Team() {
             </thead>
             <tbody>
               {members.map((m) => (
-                <tr key={m.name + m.role} className="border-t">
+                <tr key={m.id} className="border-t">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar initials={m.initials} />
+                      <Avatar initials={m.initials} avatarUrl={m.avatarUrl} />
                       <div>
                         <b className="block">{m.name}</b>
                         <span className="text-xs text-muted-foreground">
@@ -61,6 +61,13 @@ export default async function Team() {
                   </td>
                 </tr>
               ))}
+              {!members.length ? (
+                <tr className="border-t">
+                  <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
+                    No workspace members are available yet.
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

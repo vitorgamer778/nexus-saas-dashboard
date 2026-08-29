@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentWorkspace } from "@/lib/workspace";
+import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
+import { displayInitials, displayName, safeAvatarUrl } from "@/lib/display";
 
 export type CustomerView = {
   id: string;
@@ -15,13 +16,6 @@ export type CustomerView = {
   activity: string;
 };
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 const date = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
     day: "2-digit",
@@ -50,7 +44,7 @@ export async function getCustomers(): Promise<CustomerView[]> {
     return {
       id: customer.id,
       name: customer.name,
-      initials: initials(customer.name),
+      initials: displayInitials(customer.name),
       email: customer.email,
       company: customer.company ?? "Independent",
       plan: plan?.name ?? "No plan",
@@ -135,9 +129,10 @@ export async function getPlans() {
 }
 
 export async function getTeam() {
-  const [supabase, workspace] = await Promise.all([
+  const [supabase, workspace, identity] = await Promise.all([
     createClient(),
     getCurrentWorkspace(),
+    getCurrentIdentity(),
   ]);
   if (!supabase || !workspace) return [];
   const { data: memberships, error } = await supabase
@@ -150,16 +145,27 @@ export async function getTeam() {
   if (!ids.length) return [];
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id,full_name")
+    .select("id,full_name,avatar_url")
     .in("id", ids);
-  const names = new Map(
-    (profiles ?? []).map((profile) => [profile.id, profile.full_name]),
+  const profileById = new Map(
+    (profiles ?? []).map((profile) => [profile.id, profile]),
   );
   return (memberships ?? []).map((member) => {
-    const name = names.get(member.user_id) || "Workspace member";
+    const profile = profileById.get(member.user_id);
+    const isCurrentUser = member.user_id === identity?.id;
+    const name = displayName({
+      profileName: profile?.full_name,
+      metadataName: isCurrentUser ? identity?.name : null,
+      email: isCurrentUser ? identity?.email : null,
+      userId: member.user_id,
+    });
     return {
+      id: member.user_id,
       name,
-      initials: initials(name),
+      initials: displayInitials(name, "US"),
+      avatarUrl: safeAvatarUrl(
+        profile?.avatar_url ?? (isCurrentUser ? identity?.avatarUrl : null),
+      ),
       role: member.role,
       joined: date(member.joined_at),
     };
