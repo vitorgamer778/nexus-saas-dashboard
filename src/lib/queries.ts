@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
 import { displayInitials, displayName, safeAvatarUrl } from "@/lib/display";
+import { customerHealthScore, healthLabel } from "@/lib/customer-health";
 
 export type CustomerView = {
   id: string;
@@ -15,6 +16,9 @@ export type CustomerView = {
   joined: string;
   createdAt: string;
   activity: string;
+  lastActivityAt: string | null;
+  healthScore: number;
+  healthLabel: string;
 };
 
 const date = (value: string) =>
@@ -42,6 +46,13 @@ export async function getCustomers(): Promise<CustomerView[]> {
     const plan = Array.isArray(customer.plans)
       ? customer.plans[0]
       : customer.plans;
+    const healthScore = customerHealthScore({
+      status: customer.status.replace(/^./, (letter: string) =>
+        letter.toUpperCase(),
+      ),
+      mrr: Number(customer.mrr),
+      lastActivityAt: customer.last_activity_at,
+    });
     return {
       id: customer.id,
       name: customer.name,
@@ -58,6 +69,9 @@ export async function getCustomers(): Promise<CustomerView[]> {
       activity: customer.last_activity_at
         ? date(customer.last_activity_at)
         : "No activity yet",
+      lastActivityAt: customer.last_activity_at,
+      healthScore,
+      healthLabel: healthLabel(healthScore),
     };
   });
 }
@@ -117,6 +131,61 @@ export async function getCustomerTransactions(customerId: string) {
     status: item.status.replace(/^./, (letter: string) => letter.toUpperCase()),
     date: date(item.processed_at),
   }));
+}
+
+export async function getCustomerDetails(customerId: string) {
+  const [customer, transactions, supabase, workspace] = await Promise.all([
+    getCustomer(customerId),
+    getCustomerTransactions(customerId),
+    createClient(),
+    getCurrentWorkspace(),
+  ]);
+  if (!customer || !supabase || !workspace) return null;
+  const [subscriptionResult, activityResult] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("id,status,amount,current_period_end,created_at,plans(name)")
+      .eq("workspace_id", workspace.id)
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("activities")
+      .select("id,kind,created_at,metadata")
+      .eq("workspace_id", workspace.id)
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+  if (subscriptionResult.error) throw subscriptionResult.error;
+  if (activityResult.error) throw activityResult.error;
+  const subscription = subscriptionResult.data;
+  const planJoin = subscription?.plans;
+  const plan = Array.isArray(planJoin) ? planJoin[0] : planJoin;
+  return {
+    customer,
+    transactions,
+    lastPayment: transactions[0] ?? null,
+    subscription: subscription
+      ? {
+          id: subscription.id,
+          status: subscription.status,
+          amount: Number(subscription.amount),
+          plan: plan?.name ?? customer.plan,
+          currentPeriodEnd: subscription.current_period_end
+            ? date(subscription.current_period_end)
+            : "Not scheduled",
+        }
+      : null,
+    activities: (activityResult.data ?? []).map((activity) => ({
+      id: String(activity.id),
+      kind: activity.kind
+        .replaceAll(".", " ")
+        .replace(/^./, (value: string) => value.toUpperCase()),
+      date: date(activity.created_at),
+    })),
+  };
 }
 
 export async function getPlans() {
