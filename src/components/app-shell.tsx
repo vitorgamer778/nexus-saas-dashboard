@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { displayInitials } from "@/lib/display";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import type { UserWorkspace } from "@/lib/workspace-selection";
+import { NexusMark } from "./nexus-mark";
 const nav = [
   ["/dashboard", "Overview", LayoutDashboard],
   ["/customers", "Customers", Users],
@@ -41,11 +42,13 @@ export function AppShell({
   user,
   workspace,
   workspaces,
+  compactMode,
 }: {
   children: React.ReactNode;
   user: { name: string; email: string | null; avatarUrl: string | null };
   workspace: UserWorkspace;
   workspaces: UserWorkspace[];
+  compactMode: boolean;
 }) {
   const path = usePathname(),
     router = useRouter(),
@@ -75,7 +78,12 @@ export function AppShell({
     return () => removeEventListener("keydown", fn);
   }, []);
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className={cn(
+        "min-h-screen bg-background",
+        compactMode && "nexus-compact",
+      )}
+    >
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-sidebar p-4 transition-transform lg:translate-x-0",
@@ -87,9 +95,7 @@ export function AppShell({
             href="/dashboard"
             className="flex items-center gap-3 font-semibold"
           >
-            <span className="grid size-8 place-items-center rounded-xl bg-primary text-sm text-primary-foreground">
-              N
-            </span>
+            <NexusMark className="size-8" />
             Nexus
           </Link>
           <button

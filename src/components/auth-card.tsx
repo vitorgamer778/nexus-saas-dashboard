@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, Card, Input } from "./ui";
 import { GitBranch, LoaderCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { NexusMark } from "./nexus-mark";
 export function AuthCard({
   mode,
   next = "/dashboard",
@@ -86,9 +87,7 @@ export function AuthCard({
   return (
     <Card className="w-full max-w-md p-7 shadow-2xl">
       <div className="mb-7 text-center">
-        <span className="mx-auto grid size-10 place-items-center rounded-xl bg-primary font-semibold text-primary-foreground">
-          N
-        </span>
+        <NexusMark className="mx-auto size-10" />
         <h1 className="mt-5 text-2xl font-semibold">
           {mode === "login"
             ? "Welcome back"

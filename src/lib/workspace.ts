@@ -19,7 +19,7 @@ export const getCurrentIdentity = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name,avatar_url")
+    .select("full_name,avatar_url,compact_mode")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -38,6 +38,7 @@ export const getCurrentIdentity = cache(async () => {
     avatarUrl: safeAvatarUrl(
       profile?.avatar_url ?? metadata.avatar_url ?? metadata.picture,
     ),
+    compactMode: profile?.compact_mode ?? false,
   };
 });
 

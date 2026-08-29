@@ -1,17 +1,19 @@
 @import "tailwindcss";
 @custom-variant dark (&:is(.dark *));
 :root {
-  --background: #f7f7f9;
+  --background: #f8f8fb;
   --foreground: #17171b;
   --card: #fff;
   --card-foreground: #17171b;
   --popover: #fff;
   --muted: #f0f0f3;
   --muted-foreground: #71717a;
-  --border: #e5e5e9;
-  --primary: #6d5dfc;
+  --border: #e4e4eb;
+  --primary: #7c5cff;
+  --accent: #54d6ff;
+  --success: #34d399;
   --primary-foreground: #fff;
-  --ring: #8b7dfd;
+  --ring: #7c5cff;
   --destructive: #dc2626;
   --sidebar: #fbfbfc;
 }
@@ -24,7 +26,9 @@
   --muted: #202026;
   --muted-foreground: #9b9ba5;
   --border: #29292f;
-  --primary: #8b7dfd;
+  --primary: #8f78ff;
+  --accent: #54d6ff;
+  --success: #34d399;
   --primary-foreground: #fff;
   --ring: #8b7dfd;
   --destructive: #ef4444;
@@ -41,6 +45,8 @@
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
   --color-sidebar: var(--sidebar);
@@ -89,6 +95,18 @@ body::before {
 button,
 a {
   cursor: pointer;
+}
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+.nexus-compact main {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.nexus-compact nav a {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
 }
 ::selection {
   background: color-mix(in srgb, var(--primary) 28%, transparent);

@@ -6,7 +6,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card text-card-foreground shadow-[0_1px_2px_rgba(0,0,0,.03)]",
+        "rounded-2xl border border-border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,15,25,.04),0_10px_30px_rgba(15,15,25,.025)]",
         className,
       )}
       {...props}
@@ -23,7 +23,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50",
+        "inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
         variant === "default" &&
           "bg-primary text-primary-foreground hover:bg-primary/90",
         variant === "outline" &&
@@ -72,7 +72,11 @@ export function Avatar({
   return (
     <span
       className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 bg-cover bg-center text-xs font-semibold text-primary"
-      style={avatarUrl ? { backgroundImage: `url(${JSON.stringify(avatarUrl)})` } : undefined}
+      style={
+        avatarUrl
+          ? { backgroundImage: `url(${JSON.stringify(avatarUrl)})` }
+          : undefined
+      }
       aria-hidden="true"
     >
       {initials}
@@ -82,7 +86,7 @@ export function Avatar({
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
       {...props}
     />
   );

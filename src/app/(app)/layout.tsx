@@ -35,6 +35,7 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
       }}
       workspace={workspace}
       workspaces={workspaces}
+      compactMode={identity.compactMode}
     >
       {children}
     </AppShell>

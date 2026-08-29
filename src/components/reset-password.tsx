@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { NexusMark } from "./nexus-mark";
 import { Button, Card, Input } from "./ui";
 export function ResetPassword() {
   const router = useRouter();
@@ -22,9 +23,7 @@ export function ResetPassword() {
   };
   return (
     <Card className="mx-auto w-full max-w-md p-7 shadow-2xl">
-      <span className="mx-auto grid size-10 place-items-center rounded-xl bg-primary font-semibold text-primary-foreground">
-        N
-      </span>
+      <NexusMark className="mx-auto size-10" />
       <h1 className="mt-5 text-center text-2xl font-semibold">
         Choose a new password
       </h1>
