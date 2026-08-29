@@ -2,11 +2,13 @@ import { RevenueChart, PlansChart } from "@/components/dashboard-chart";
 import { Badge, Button, Card } from "@/components/ui";
 import { PageHead, SectionTitle } from "@/components/page-kit";
 import { DashboardKpi } from "@/components/dashboard-kpi";
+import { NexusIntelligence } from "@/components/nexus-intelligence";
 import { buildDashboardMetrics, periodChange } from "@/lib/dashboard-metrics";
+import { getNexusInsights } from "@/lib/intelligence";
 import { getCustomers, getTransactions } from "@/lib/queries";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
-import { ArrowRight, CalendarDays, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarDays } from "lucide-react";
 import Link from "next/link";
 export default async function Dashboard() {
   const [customers, transactions, workspace, supabase] = await Promise.all([
@@ -24,6 +26,11 @@ export default async function Dashboard() {
   const mrrChange = periodChange(metrics.mrrSeries);
   const activeChange = periodChange(metrics.activeSeries);
   const churnChange = periodChange(metrics.churnSeries);
+  const intelligence = await getNexusInsights({
+    activeCustomers: metrics.active,
+    mrr: metrics.mrr,
+    churn: metrics.churn,
+  });
   const money = (value: number) =>
     new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -64,23 +71,10 @@ export default async function Dashboard() {
           </Button>
         }
       />
-      <div className="mb-4 flex flex-col gap-3 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/[.12] via-primary/[.05] to-transparent p-4 sm:flex-row sm:items-center">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-          <Sparkles className="size-4" />
-        </span>
-        <div className="flex-1">
-          <p className="text-sm font-medium">
-            Nexus Intelligence found a growth opportunity
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Pro trials that activate 3+ teammates convert 28% better. Consider a
-            targeted onboarding campaign.
-          </p>
-        </div>
-        <Button variant="outline" className="bg-background/70">
-          View insight <ArrowRight className="size-4" />
-        </Button>
-      </div>
+      <NexusIntelligence
+        insights={intelligence.insights}
+        mode={intelligence.mode}
+      />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-4">
         <DashboardKpi
           label="Monthly recurring revenue"
