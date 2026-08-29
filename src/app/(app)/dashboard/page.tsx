@@ -1,6 +1,8 @@
 import { RevenueChart, PlansChart } from "@/components/dashboard-chart";
 import { Badge, Button, Card } from "@/components/ui";
-import { Metric, PageHead, SectionTitle } from "@/components/page-kit";
+import { PageHead, SectionTitle } from "@/components/page-kit";
+import { DashboardKpi } from "@/components/dashboard-kpi";
+import { buildDashboardMetrics, periodChange } from "@/lib/dashboard-metrics";
 import { getCustomers, getTransactions } from "@/lib/queries";
 import { getCurrentWorkspace } from "@/lib/workspace";
 import { createClient } from "@/lib/supabase/server";
@@ -18,15 +20,16 @@ export default async function Dashboard() {
     user?.user_metadata?.full_name?.split(" ")[0] ??
     user?.email?.split("@")[0] ??
     "there";
-  const mrr = customers.reduce((total, customer) => total + customer.mrr, 0);
-  const active = customers.filter(
-    (customer) => customer.status === "Active",
-  ).length;
-  const churn = customers.length
-    ? (customers.filter((customer) => customer.status === "Canceled").length /
-        customers.length) *
-      100
-    : 0;
+  const metrics = buildDashboardMetrics(customers);
+  const mrrChange = periodChange(metrics.mrrSeries);
+  const activeChange = periodChange(metrics.activeSeries);
+  const churnChange = periodChange(metrics.churnSeries);
+  const money = (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value);
   const months = Array.from({ length: 6 }, (_, index) => {
     const value = new Date();
     value.setMonth(value.getMonth() - (5 - index));
@@ -78,24 +81,41 @@ export default async function Dashboard() {
           View insight <ArrowRight className="size-4" />
         </Button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-4">
+        <DashboardKpi
           label="Monthly recurring revenue"
-          value={`$${mrr.toLocaleString()}`}
-          change="Live"
+          value={money(metrics.mrr)}
+          series={metrics.mrrSeries}
+          percent={mrrChange.percent}
+          detail={`${metrics.newMrrThisMonth >= 0 ? "+" : ""}${money(metrics.newMrrThisMonth)} new MRR this month`}
+          formatTooltip={money}
         />
-        <Metric
+        <DashboardKpi
           label="Annual run rate"
-          value={`$${(mrr * 12).toLocaleString()}`}
-          change="Live"
+          value={money(metrics.mrr * 12)}
+          series={metrics.mrrSeries.map((point) => ({
+            ...point,
+            value: point.value * 12,
+          }))}
+          percent={mrrChange.percent}
+          detail={`${metrics.newMrrThisMonth >= 0 ? "+" : ""}${money(metrics.newMrrThisMonth * 12)} annualized this month`}
+          formatTooltip={money}
         />
-        <Metric label="Active customers" value={String(active)} change="Live" />
-        <Metric
+        <DashboardKpi
+          label="Active customers"
+          value={metrics.active.toLocaleString()}
+          series={metrics.activeSeries}
+          percent={activeChange.percent}
+          detail={`+${metrics.newActiveThisMonth} active ${metrics.newActiveThisMonth === 1 ? "customer" : "customers"} this month`}
+        />
+        <DashboardKpi
           label="Churn rate"
-          value={`${churn.toFixed(1)}%`}
-          change="Live"
-          down
-          detail="lower is better"
+          value={`${metrics.churn.toFixed(1)}%`}
+          series={metrics.churnSeries}
+          percent={churnChange.percent}
+          lowerIsBetter
+          detail={`${churnChange.delta >= 0 ? "+" : ""}${churnChange.delta.toFixed(1)} pts vs previous month · lower is better`}
+          formatTooltip={(value) => `${value.toFixed(1)}%`}
         />
       </div>
       <div className="mt-4 grid gap-4 xl:grid-cols-[1.65fr_1fr]">

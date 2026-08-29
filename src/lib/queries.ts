@@ -13,6 +13,7 @@ export type CustomerView = {
   status: string;
   mrr: number;
   joined: string;
+  createdAt: string;
   activity: string;
 };
 
@@ -53,6 +54,7 @@ export async function getCustomers(): Promise<CustomerView[]> {
         .replace(/^./, (letter: string) => letter.toUpperCase()),
       mrr: Number(customer.mrr),
       joined: date(customer.created_at),
+      createdAt: customer.created_at,
       activity: customer.last_activity_at
         ? date(customer.last_activity_at)
         : "No activity yet",
