@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
 import { displayInitials, displayName, safeAvatarUrl } from "@/lib/display";
 import { customerHealthScore, healthLabel } from "@/lib/customer-health";
+import { buildAnalyticsModel } from "@/lib/analytics-model";
 
 export type CustomerView = {
   id: string;
@@ -272,6 +273,28 @@ export async function getSubscriptionOverview() {
         ),
       };
     }),
+  };
+}
+
+export async function getAnalyticsData() {
+  const [customers, transactions, supabase, workspace] = await Promise.all([
+    getCustomers(),
+    getTransactions(),
+    createClient(),
+    getCurrentWorkspace(),
+  ]);
+  if (!supabase || !workspace) return null;
+  const { data: activities, error } = await supabase
+    .from("activities")
+    .select("metadata")
+    .eq("workspace_id", workspace.id)
+    .order("created_at", { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return {
+    customers,
+    transactions,
+    model: buildAnalyticsModel(customers, transactions, activities ?? []),
   };
 }
 
