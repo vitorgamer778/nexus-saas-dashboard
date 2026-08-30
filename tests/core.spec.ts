@@ -35,3 +35,31 @@ test("unsafe callback destination never leaves the application", async ({
   await expect(page).toHaveURL(/\/login\?error=auth_callback/);
 });
 
+test("public landing presents the product and opens the safe demo", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: /signals shaping your SaaS growth/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/no account or credentials required/i),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /explore the read-only demo/i }).click();
+  await expect(page).toHaveURL(/\/demo\/dashboard/);
+  await expect(
+    page.getByRole("heading", { name: "Revenue overview" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Create report" }).click();
+  await expect(page.getByText("Read-only demo")).toBeVisible();
+});
+
+test("demo navigation has no horizontal mobile overflow", async ({ page }) => {
+  await page.goto("/demo/customers");
+  await expect(page.getByRole("heading", { name: "Customers" })).toBeVisible();
+  const widths = await page.evaluate(() => ({
+    document: document.documentElement.scrollWidth,
+    viewport: window.innerWidth,
+  }));
+  expect(widths.document).toBeLessThanOrEqual(widths.viewport);
+});
