@@ -76,7 +76,21 @@ export async function getCustomers(): Promise<CustomerView[]> {
   });
 }
 
-export async function getTransactions() {
+export type TransactionView = {
+  id: string;
+  shortId: string;
+  customerId: string | null;
+  customer: string;
+  customerName: string;
+  customerEmail: string | null;
+  value: number;
+  method: string;
+  status: string;
+  date: string;
+  processedAt: string;
+};
+
+export async function getTransactions(): Promise<TransactionView[]> {
   const [supabase, workspace] = await Promise.all([
     createClient(),
     getCurrentWorkspace(),
@@ -84,7 +98,9 @@ export async function getTransactions() {
   if (!supabase || !workspace) return [];
   const { data, error } = await supabase
     .from("transactions")
-    .select("id,amount,method,status,processed_at,customers(name,company)")
+    .select(
+      "id,customer_id,amount,method,status,processed_at,customers(name,email,company)",
+    )
     .eq("workspace_id", workspace.id)
     .order("processed_at", { ascending: false });
   if (error) throw error;
@@ -93,8 +109,12 @@ export async function getTransactions() {
       ? transaction.customers[0]
       : transaction.customers;
     return {
-      id: transaction.id.slice(0, 8).toUpperCase(),
+      id: transaction.id,
+      shortId: transaction.id.slice(0, 8).toUpperCase(),
+      customerId: transaction.customer_id,
       customer: customer?.company ?? customer?.name ?? "Unknown customer",
+      customerName: customer?.name ?? "Unknown customer",
+      customerEmail: customer?.email ?? null,
       value: Number(transaction.amount),
       method: transaction.method,
       status: transaction.status.replace(/^./, (letter: string) =>

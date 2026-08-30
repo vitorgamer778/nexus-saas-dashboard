@@ -1,101 +1,49 @@
-import { getTransactions } from "@/lib/queries";
-import { Badge, Card, Input } from "@/components/ui";
+import { Download } from "lucide-react";
+import { TransactionsTable } from "@/components/transactions-table";
 import { PageHead, Metric } from "@/components/page-kit";
-import { Search } from "lucide-react";
+import { getTransactions } from "@/lib/queries";
+
 export default async function Transactions() {
   const transactions = await getTransactions();
-  const gross = transactions
-    .filter((item) => item.status === "Approved")
-    .reduce((total, item) => total + item.value, 0);
+  const approved = transactions.filter((item) => item.status === "Approved");
+  const gross = approved.reduce((total, item) => total + item.value, 0);
   const refunded = transactions
     .filter((item) => item.status === "Refunded")
     .reduce((total, item) => total + item.value, 0);
   const successRate = transactions.length
-    ? Math.round(
-        (transactions.filter((item) => item.status === "Approved").length /
-          transactions.length) *
-          100,
-      )
+    ? Math.round((approved.length / transactions.length) * 100)
     : 0;
   return (
     <>
       <PageHead
         title="Transactions"
         description="Track payments, refunds and failed charges."
+        action={
+          <a
+            href="/api/transactions/export"
+            download
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Download className="size-4" />
+            Export CSV
+          </a>
+        }
       />
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Metric
           label="Gross volume"
-          value={`$${gross.toLocaleString()}`}
+          value={"$" + gross.toLocaleString()}
           change="Live"
         />
-        <Metric label="Successful" value={`${successRate}%`} change="Live" />
+        <Metric label="Successful" value={successRate + "%"} change="Live" />
         <Metric
           label="Refunded"
-          value={`$${refunded.toLocaleString()}`}
+          value={"$" + refunded.toLocaleString()}
           change="Live"
           down
         />
       </div>
-      <Card className="overflow-hidden">
-        <div className="border-b p-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-            <Input
-              className="pl-9"
-              placeholder="Search transaction ID or customer…"
-            />
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
-              <tr>
-                {[
-                  "Transaction",
-                  "Customer",
-                  "Method",
-                  "Status",
-                  "Date",
-                  "Amount",
-                ].map((x) => (
-                  <th key={x} className="px-5 py-3 font-medium last:text-right">
-                    {x}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t) => (
-                <tr key={t.id} className="border-t">
-                  <td className="px-5 py-4 font-mono text-xs">{t.id}</td>
-                  <td className="px-5 font-medium">{t.customer}</td>
-                  <td className="px-5 text-muted-foreground">{t.method}</td>
-                  <td className="px-5">
-                    <Badge
-                      tone={
-                        t.status === "Approved"
-                          ? "green"
-                          : t.status === "Failed"
-                            ? "red"
-                            : t.status === "Pending"
-                              ? "amber"
-                              : "blue"
-                      }
-                    >
-                      {t.status}
-                    </Badge>
-                  </td>
-                  <td className="px-5 text-muted-foreground">{t.date}</td>
-                  <td className="px-5 text-right font-mono font-medium">
-                    ${t.value.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <TransactionsTable transactions={transactions} />
     </>
   );
 }
