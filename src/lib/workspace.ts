@@ -29,6 +29,12 @@ export const getCurrentIdentity = cache(async () => {
   return {
     id: user.id,
     email,
+    createdAt: user.created_at,
+    lastSignInAt: user.last_sign_in_at ?? null,
+    provider:
+      typeof user.app_metadata?.provider === "string"
+        ? user.app_metadata.provider
+        : "email",
     name: displayName({
       profileName: profile?.full_name,
       metadataName: metadata.full_name ?? metadata.name,

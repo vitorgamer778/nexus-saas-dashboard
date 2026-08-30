@@ -1,8 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
+import { AlertDialog } from "radix-ui";
 import {
   Bell,
   Building2,
@@ -42,6 +44,9 @@ export type SettingsData = {
     name: string;
     email: string | null;
     avatarUrl: string | null;
+    createdAt: string;
+    lastSignInAt: string | null;
+    provider: string;
   };
   workspace: {
     id: string;
@@ -85,6 +90,10 @@ export type SettingsData = {
     created_at: string;
   }>;
   mfaEnabled: boolean;
+  billing: {
+    customerCount: number;
+    monthlyRevenue: number;
+  };
 };
 const sections = [
   ["general", "General", Building2],
@@ -108,6 +117,11 @@ const zones = [
   "Europe/London",
   "Europe/Lisbon",
 ];
+const formatSecurityDate = (value: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
 
 export function SettingsForm({ data }: { data: SettingsData }) {
   const [section, setSection] = useState("general"),
@@ -455,7 +469,10 @@ function MembersPanel({
   run: Run;
 }) {
   const [email, setEmail] = useState(""),
-    [role, setRole] = useState("member");
+    [role, setRole] = useState("member"),
+    [removeTarget, setRemoveTarget] = useState<
+      SettingsData["members"][number] | null
+    >(null);
   const assignableRoles =
     data.workspace.role === "owner"
       ? ["admin", "manager", "member", "viewer"]
@@ -544,9 +561,7 @@ function MembersPanel({
                 <Button
                   variant="ghost"
                   disabled={pending}
-                  onClick={() =>
-                    run(() => removeMember(m.id), "Member removed.")
-                  }
+                  onClick={() => setRemoveTarget(m)}
                 >
                   <Trash2 className="size-4" />
                   <span className="sr-only">Remove {m.name}</span>
@@ -569,6 +584,47 @@ function MembersPanel({
           ))}
         </div>
       )}
+      <AlertDialog.Root
+        open={Boolean(removeTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRemoveTarget(null);
+        }}
+      >
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]" />
+          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-background p-6 shadow-2xl outline-none">
+            <AlertDialog.Title className="text-lg font-semibold">
+              Remove workspace member?
+            </AlertDialog.Title>
+            <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
+              {removeTarget?.name} will immediately lose access to this
+              workspace. Their account and access to other workspaces will not
+              be affected.
+            </AlertDialog.Description>
+            <div className="mt-6 flex justify-end gap-2">
+              <AlertDialog.Cancel asChild>
+                <Button variant="outline" disabled={pending}>
+                  Cancel
+                </Button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <Button
+                  variant="danger"
+                  disabled={pending || !removeTarget}
+                  onClick={() => {
+                    if (!removeTarget) return;
+                    const memberId = removeTarget.id;
+                    setRemoveTarget(null);
+                    run(() => removeMember(memberId), "Member removed.");
+                  }}
+                >
+                  Remove member
+                </Button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </Panel>
   );
 }
@@ -674,6 +730,27 @@ function SecurityPanel({
     >
       <div className="space-y-4">
         <Row
+          title="Current session"
+          text={
+            "Signed in with " +
+            data.identity.provider.replace(/^./, (letter) =>
+              letter.toUpperCase(),
+            ) +
+            (data.identity.lastSignInAt
+              ? " · Last login " +
+                formatSecurityDate(data.identity.lastSignInAt)
+              : "")
+          }
+        >
+          <Badge tone="green">Verified</Badge>
+        </Row>
+        <Row
+          title="Account created"
+          text={formatSecurityDate(data.identity.createdAt)}
+        >
+          <Badge>{data.identity.email ?? "No email"}</Badge>
+        </Row>
+        <Row
           title="Password"
           text="Update your password from the Profile section."
         >
@@ -741,7 +818,7 @@ function BillingPanel({ data }: { data: SettingsData }) {
       title="Billing"
       description="Plan and usage for the active workspace."
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Metric
           label="Current plan"
           value={data.workspace.plan.name}
@@ -752,13 +829,23 @@ function BillingPanel({ data }: { data: SettingsData }) {
           value={String(data.members.length)}
           help="active seats"
         />
+        <Metric
+          label="Customer usage"
+          value={String(data.billing.customerCount)}
+          help={`$${data.billing.monthlyRevenue.toLocaleString()} active MRR`}
+        />
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/40 p-4">
         <p className="text-sm text-muted-foreground">
-          No billing provider is connected. Invoices and upgrades are
-          unavailable.
+          No billing provider is connected, so invoices and real charges are
+          unavailable. Workspace tier changes remain available internally.
         </p>
-        <Button disabled>Upgrade plan</Button>
+        <Link
+          href="/subscriptions"
+          className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Manage plan
+        </Link>
       </div>
     </Panel>
   );
@@ -814,7 +901,7 @@ function Appearance({
   pending: boolean;
   run: Run;
 }) {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [locale, setLocale] = useState(data.profile.locale),
     [timezone, setTimezone] = useState(data.profile.timezone),
     [compact, setCompact] = useState(data.profile.compact_mode);
@@ -824,7 +911,7 @@ function Appearance({
         <Field label="Theme">
           <select
             className={selectClass}
-            value={resolvedTheme ?? "system"}
+            value={theme ?? "system"}
             onChange={(e) => setTheme(e.target.value)}
           >
             <option value="light">Light</option>
@@ -899,8 +986,10 @@ function Danger({
   run: Run;
 }) {
   const [confirm, setConfirm] = useState(""),
-    [owner, setOwner] = useState("");
+    [owner, setOwner] = useState(""),
+    [transferOpen, setTransferOpen] = useState(false);
   const candidates = data.members.filter((m) => m.role !== "owner");
+  const targetOwner = candidates.find((member) => member.id === owner);
   return (
     <Panel
       title="Danger zone"
@@ -940,9 +1029,7 @@ function Danger({
             <Button
               variant="outline"
               disabled={!isOwner || !owner || pending}
-              onClick={() =>
-                run(() => transferOwnership(owner), "Ownership transferred.")
-              }
+              onClick={() => setTransferOpen(true)}
             >
               Transfer
             </Button>
@@ -973,6 +1060,43 @@ function Danger({
           </div>
         </div>
       </div>
+      <AlertDialog.Root open={transferOpen} onOpenChange={setTransferOpen}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]" />
+          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-background p-6 shadow-2xl outline-none">
+            <AlertDialog.Title className="text-lg font-semibold">
+              Transfer workspace ownership?
+            </AlertDialog.Title>
+            <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
+              {targetOwner?.name ?? "The selected member"} will become the owner
+              of {data.workspace.name}. Your role will change to admin, and only
+              the new owner can reverse this operation.
+            </AlertDialog.Description>
+            <div className="mt-6 flex justify-end gap-2">
+              <AlertDialog.Cancel asChild>
+                <Button variant="outline" disabled={pending}>
+                  Cancel
+                </Button>
+              </AlertDialog.Cancel>
+              <AlertDialog.Action asChild>
+                <Button
+                  variant="danger"
+                  disabled={pending || !owner}
+                  onClick={() => {
+                    setTransferOpen(false);
+                    run(
+                      () => transferOwnership(owner),
+                      "Ownership transferred.",
+                    );
+                  }}
+                >
+                  Confirm transfer
+                </Button>
+              </AlertDialog.Action>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </Panel>
   );
 }

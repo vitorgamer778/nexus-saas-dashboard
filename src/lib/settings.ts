@@ -1,15 +1,18 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentIdentity, getCurrentWorkspace } from "@/lib/workspace";
-import { getTeam } from "@/lib/queries";
+import { getCustomers, getTeam } from "@/lib/queries";
 
 export async function getSettingsData() {
-  const [supabase, identity, workspace, members] = await Promise.all([
-    createClient(),
-    getCurrentIdentity(),
-    getCurrentWorkspace(),
-    getTeam(),
-  ]);
+  const [supabase, identity, workspace, members, customers] = await Promise.all(
+    [
+      createClient(),
+      getCurrentIdentity(),
+      getCurrentWorkspace(),
+      getTeam(),
+      getCustomers(),
+    ],
+  );
   if (!supabase || !identity || !workspace) return null;
 
   const [
@@ -55,7 +58,8 @@ export async function getSettingsData() {
     workspace: {
       ...workspace,
       ...workspaceResult.data,
-      role: workspace.role as "owner" | "admin" | "manager" | "member" | "viewer",
+      role: workspace.role as
+        "owner" | "admin" | "manager" | "member" | "viewer",
       plan: plan ?? { name: "Free", price_monthly: 0 },
     },
     profile: profileResult.data ?? {
@@ -73,6 +77,12 @@ export async function getSettingsData() {
       security_alert: true,
     },
     members,
+    billing: {
+      customerCount: customers.length,
+      monthlyRevenue: customers
+        .filter((customer) => customer.status !== "Canceled")
+        .reduce((total, customer) => total + customer.mrr, 0),
+    },
     invitations: invitationsResult.data ?? [],
     mfaEnabled: (factorsResult.data?.totp ?? []).some(
       (factor) => factor.status === "verified",
