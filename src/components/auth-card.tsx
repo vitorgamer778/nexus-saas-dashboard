@@ -6,6 +6,7 @@ import { Button, Card, Input } from "./ui";
 import { GitBranch, LoaderCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { NexusMark } from "./nexus-mark";
+import { getAuthOrigin } from "@/lib/site-url";
 export function AuthCard({
   mode,
   next = "/dashboard",
@@ -25,7 +26,13 @@ export function AuthCard({
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email"));
     const password = String(form.get("password"));
-    const callback = new URL("/auth/callback", location.origin);
+    const authOrigin = getAuthOrigin(location.origin);
+    if (!authOrigin) {
+      setError("Authentication redirect configuration is invalid.");
+      setLoading(false);
+      return;
+    }
+    const callback = new URL("/auth/callback", authOrigin);
     callback.searchParams.set(
       "next",
       mode === "register" ? "/onboarding" : next,
@@ -50,7 +57,7 @@ export function AuthCard({
               options: { emailRedirectTo: callback.toString() },
             })
           : await supabase.auth.resetPasswordForEmail(email, {
-              redirectTo: `${location.origin}/auth/callback?next=/reset-password`,
+              redirectTo: `${authOrigin}/auth/callback?next=/reset-password`,
             });
     if (result.error) {
       setError(result.error.message);
@@ -76,7 +83,12 @@ export function AuthCard({
       );
       return;
     }
-    const callback = new URL("/auth/callback", location.origin);
+    const authOrigin = getAuthOrigin(location.origin);
+    if (!authOrigin) {
+      setError("Authentication redirect configuration is invalid.");
+      return;
+    }
+    const callback = new URL("/auth/callback", authOrigin);
     callback.searchParams.set("next", next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
