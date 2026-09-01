@@ -28,7 +28,8 @@ export function DashboardKpi({
   const neutral = delta === 0;
   const TrendIcon = neutral ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <Card className="group relative min-w-0 animate-rise overflow-hidden p-5 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_18px_50px_-34px_var(--primary)]">
+    <Card className="group relative min-w-0 animate-rise overflow-hidden p-5 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_22px_55px_-34px_var(--primary)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/55 to-transparent opacity-50" />
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <span
@@ -49,12 +50,12 @@ export function DashboardKpi({
             : `${Math.abs(percent).toFixed(1)}%`}
         </span>
       </div>
-      <p className="mt-3 truncate text-2xl font-semibold tracking-[-0.035em] sm:text-[1.7rem]">
+      <p className="mt-4 truncate font-mono text-2xl font-semibold tracking-[-0.045em] sm:text-[1.75rem]">
         {value}
       </p>
       <p className="mt-1 min-h-4 text-xs text-muted-foreground">{detail}</p>
       <div
-        className="mt-4 h-14"
+        className="mt-4 h-[4.25rem] -mb-1"
         aria-label={`${label} trend over the last six months`}
       >
         <ResponsiveContainer width="100%" height="100%">
@@ -108,10 +109,10 @@ export function DashboardKpi({
               stroke={
                 favorable || neutral ? "var(--primary)" : "var(--destructive)"
               }
-              strokeWidth={2}
+              strokeWidth={2.25}
               fill={`url(#kpi-${label.replaceAll(" ", "-")})`}
               dot={false}
-              activeDot={{ r: 3, strokeWidth: 0 }}
+              activeDot={{ r: 3.5, strokeWidth: 2, stroke: "var(--card)" }}
             />
           </AreaChart>
         </ResponsiveContainer>

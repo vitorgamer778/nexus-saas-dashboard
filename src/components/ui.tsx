@@ -6,7 +6,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-card text-card-foreground shadow-[0_1px_2px_rgba(15,15,25,.04),0_10px_30px_rgba(15,15,25,.025)]",
+        "nexus-surface rounded-2xl border border-border/80 bg-card text-card-foreground",
         className,
       )}
       {...props}
@@ -23,9 +23,9 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium shadow-sm transition-[transform,color,background-color,border-color,box-shadow] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:translate-y-0 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
         variant === "default" &&
-          "bg-primary text-primary-foreground hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-primary/15 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20",
         variant === "outline" &&
           "border border-border bg-background hover:bg-muted",
         variant === "ghost" && "hover:bg-muted",
@@ -54,7 +54,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-full border border-current/10 px-2 py-1 text-[11px] font-semibold tracking-[.01em]",
         tones[tone],
       )}
     >
@@ -86,7 +86,7 @@ export function Avatar({
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+      className="h-10 w-full rounded-lg border border-border/90 bg-background px-3 text-sm shadow-[0_1px_0_rgb(255_255_255/.04)_inset] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-muted-foreground/75 hover:border-foreground/20 focus:border-primary/45 focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-60"
       {...props}
     />
   );

@@ -39,18 +39,18 @@ export function NexusIntelligence({
   if (!insight) return null;
   const Icon = icons[insight.kind];
   return (
-    <Card className="relative mb-4 overflow-hidden border-primary/25 bg-[color-mix(in_srgb,var(--card)_94%,var(--primary))]">
+    <Card className="relative mb-5 overflow-hidden border-primary/30 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_96%,var(--primary)),var(--card)_58%,color-mix(in_srgb,var(--card)_97%,var(--accent)))] shadow-[0_24px_70px_-45px_var(--primary)]">
       <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full border border-primary/10" />
       <div className="pointer-events-none absolute -right-6 -top-10 size-36 rounded-full border border-accent/15" />
-      <div className="relative border-b border-primary/10 px-5 py-4 sm:px-6">
+      <div className="relative border-b border-primary/15 px-5 py-5 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+            <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 ring-4 ring-primary/10">
               <BrainCircuit className="size-4" />
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-semibold tracking-tight">
+                <h2 className="text-base font-semibold tracking-[-.02em]">
                   Nexus Intelligence
                 </h2>
                 <Badge tone={mode === "live" ? "green" : "blue"}>
@@ -93,19 +93,19 @@ export function NexusIntelligence({
           </div>
         </div>
       </div>
-      <div className="relative grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.35fr_.65fr]">
+      <div className="relative grid gap-7 p-5 sm:p-7 lg:grid-cols-[1.4fr_.6fr]">
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.14em] text-primary">
             <Icon className="size-3.5" />
             {insight.eyebrow}
           </p>
-          <h3 className="mt-2 text-xl font-semibold tracking-[-.025em] sm:text-2xl">
+          <h3 className="mt-2 max-w-2xl text-xl font-semibold tracking-[-.035em] sm:text-[1.65rem] sm:leading-tight">
             {insight.title}
           </h3>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             {insight.summary}
           </p>
-          <div className="mt-5 rounded-xl border border-border/80 bg-background/65 p-4">
+          <div className="mt-5 rounded-xl border border-primary/10 bg-background/65 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Possible cause
             </p>
@@ -144,7 +144,7 @@ export function NexusIntelligence({
             </Button>
           </div>
         </div>
-        <aside className="flex flex-col justify-between gap-5 rounded-xl border border-border/70 bg-card/70 p-4">
+        <aside className="flex flex-col justify-between gap-5 rounded-xl border border-primary/15 bg-background/55 p-5 shadow-[0_1px_0_rgb(255_255_255/.04)_inset]">
           <div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Confidence</span>

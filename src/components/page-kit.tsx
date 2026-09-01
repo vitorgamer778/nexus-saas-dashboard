@@ -10,15 +10,17 @@ export function PageHead({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-7 flex flex-col justify-between gap-4 border-b border-border/70 pb-6 sm:flex-row sm:items-end">
+    <div className="mb-8 flex flex-col justify-between gap-4 border-b border-border/60 pb-6 sm:flex-row sm:items-end">
       <div>
         <p className="mb-1 text-xs font-semibold uppercase tracking-[.18em] text-primary">
           Nexus workspace
         </p>
-        <h1 className="bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-2xl font-semibold tracking-[-0.035em] text-transparent sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-[-0.04em] text-foreground sm:text-[2rem]">
           {title}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {description}
+        </p>
       </div>
       <div className="flex gap-2">
         {action ?? (
@@ -100,7 +102,7 @@ export function SectionTitle({
   aside?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+    <div className="flex items-center justify-between border-b border-border/70 px-5 py-4 sm:px-6">
       <div>
         <h2 className="font-semibold">{title}</h2>
         {description && (

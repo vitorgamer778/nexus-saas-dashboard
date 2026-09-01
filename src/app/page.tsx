@@ -56,7 +56,7 @@ const features = [
 function DashboardPreview() {
   return (
     <div
-      className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#111116] p-2 shadow-[0_40px_110px_-55px_rgba(124,92,255,.8)] sm:p-3"
+      className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.5rem] border border-white/12 bg-[#111116] p-2 shadow-[0_45px_120px_-50px_rgba(124,92,255,.72)] ring-1 ring-white/[.025] sm:p-3"
       aria-label="Nexus dashboard preview"
     >
       <div className="flex min-h-[420px] overflow-hidden rounded-2xl border border-white/8 bg-[#0e0e11]">
@@ -208,7 +208,7 @@ export default function Home() {
             <span className="size-1.5 rounded-full bg-cyan-300" /> Portfolio
             project · Production-minded
           </span>
-          <h1 className="mx-auto mt-7 max-w-4xl text-balance text-4xl font-semibold tracking-[-.045em] text-white sm:text-6xl lg:text-[4.5rem] lg:leading-[1.02]">
+          <h1 className="mx-auto mt-7 max-w-4xl text-balance text-4xl font-semibold tracking-[-.052em] text-white sm:text-6xl lg:text-[4.75rem] lg:leading-[.99]">
             See the signals shaping your SaaS growth.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-7 text-zinc-400 sm:text-lg">
@@ -218,7 +218,7 @@ export default function Home() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/demo/dashboard"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-lg shadow-violet-950/35 transition hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-violet-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
             >
               Explore the read-only demo <ArrowRight className="size-4" />
             </Link>
@@ -231,11 +231,11 @@ export default function Home() {
               <GitFork className="size-4" /> View source
             </a>
           </div>
-          <p className="mt-4 text-xs text-zinc-600">
+          <p className="mt-4 text-xs text-zinc-500">
             No account or credentials required. Demo data is fictional.
           </p>
         </div>
-        <div className="relative mt-16">
+        <div className="relative mt-16 before:pointer-events-none before:absolute before:-inset-12 before:-z-10 before:bg-[radial-gradient(ellipse_at_center,rgba(124,92,255,.13),transparent_65%)]">
           <DashboardPreview />
         </div>
       </section>
@@ -253,7 +253,9 @@ export default function Home() {
             "Playwright",
             "Vercel",
           ].map((item) => (
-            <span key={item}>{item}</span>
+            <span key={item} className="transition-colors hover:text-zinc-300">
+              {item}
+            </span>
           ))}
         </div>
       </section>
@@ -269,8 +271,11 @@ export default function Home() {
           </div>
           <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-white/8 bg-white/8 md:grid-cols-2 lg:grid-cols-3">
             {features.map(({ icon: Icon, title, body }) => (
-              <article key={title} className="bg-[#111116] p-6">
-                <div className="grid size-9 place-items-center rounded-lg border border-white/8 bg-white/[.035] text-violet-300">
+              <article
+                key={title}
+                className="group bg-[#111116] p-6 transition-colors hover:bg-[#15151b]"
+              >
+                <div className="grid size-9 place-items-center rounded-lg border border-white/8 bg-white/[.035] text-violet-300 transition-transform group-hover:-translate-y-0.5 group-hover:scale-105">
                   <Icon className="size-4.5" />
                 </div>
                 <h3 className="mt-5 font-semibold text-white">{title}</h3>

@@ -86,7 +86,7 @@ export function AppShell({
     >
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-sidebar p-4 transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 border-r border-border/70 bg-sidebar/95 p-4 shadow-[12px_0_45px_-38px_rgba(0,0,0,.55)] backdrop-blur-xl transition-transform lg:translate-x-0",
           mobile ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -110,16 +110,16 @@ export function AppShell({
           activeWorkspace={workspace}
           workspaces={workspaces}
         />
-        <nav className="mt-6 space-y-1" aria-label="Main navigation">
+        <nav className="mt-6 space-y-1.5" aria-label="Main navigation">
           {nav.map(([href, label, Icon]) => (
             <Link
               key={href}
               href={href}
               onClick={() => setMobile(false)}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-[color,background-color,transform] hover:translate-x-0.5 hover:bg-muted/80 hover:text-foreground",
                 path.startsWith(href) &&
-                  "bg-primary/10 font-medium text-primary",
+                  "bg-primary/10 font-semibold text-primary shadow-[inset_3px_0_0_var(--primary)]",
               )}
             >
               <Icon className="size-4" />
@@ -163,7 +163,7 @@ export function AppShell({
         />
       )}
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/70 bg-background/80 px-4 shadow-[0_8px_30px_-28px_rgba(0,0,0,.45)] backdrop-blur-xl sm:px-6">
           <button
             className="lg:hidden"
             onClick={() => setMobile(true)}
@@ -202,7 +202,7 @@ export function AppShell({
             </Button>
           </div>
         </header>
-        <main className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8">
+        <main className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8 xl:p-9">
           {children}
         </main>
       </div>

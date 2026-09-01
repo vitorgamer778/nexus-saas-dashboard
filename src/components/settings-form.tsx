@@ -109,7 +109,7 @@ const sections = [
   ["danger", "Danger zone", Trash2],
 ] as const;
 const selectClass =
-  "h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-60";
+  "h-10 w-full rounded-lg border border-border/90 bg-background px-3 text-sm shadow-sm outline-none transition-colors hover:border-foreground/20 focus:border-primary/45 focus:ring-2 focus:ring-ring/20 disabled:opacity-60";
 const zones = [
   "UTC",
   "America/Sao_Paulo",
@@ -140,9 +140,9 @@ export function SettingsForm({ data }: { data: SettingsData }) {
       }
     });
   return (
-    <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-8">
       <nav
-        className="flex gap-1 overflow-x-auto rounded-xl border bg-card p-2 xl:sticky xl:top-24 xl:h-fit xl:flex-col"
+        className="nexus-surface flex gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-card p-2 xl:sticky xl:top-24 xl:h-fit xl:flex-col"
         aria-label="Settings sections"
       >
         {sections.map(([id, label, Icon]) => (
@@ -150,7 +150,7 @@ export function SettingsForm({ data }: { data: SettingsData }) {
             key={id}
             onClick={() => setSection(id)}
             aria-current={section === id ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${section === id ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all ${section === id ? "bg-primary/10 font-semibold text-primary shadow-[inset_3px_0_0_var(--primary)]" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
           >
             <Icon className="size-4" />
             {label}
@@ -222,11 +222,11 @@ function Panel({
 }) {
   return (
     <Card className="overflow-hidden">
-      <header className="border-b px-5 py-5 sm:px-7">
+      <header className="border-b border-border/70 bg-muted/15 px-5 py-5 sm:px-7">
         <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </header>
-      <div className="p-5 sm:p-7">{children}</div>
+      <div className="p-5 sm:p-7 lg:p-8">{children}</div>
     </Card>
   );
 }

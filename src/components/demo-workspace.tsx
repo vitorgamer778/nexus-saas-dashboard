@@ -129,10 +129,16 @@ function DashboardView() {
           ["Active customers", "1,248", "+7.8%", true],
           ["Revenue churn", "2.4%", "-0.6%", true],
         ].map(([label, value, trend, up]) => (
-          <Card key={String(label)} className="p-5">
+          <Card
+            key={String(label)}
+            className="group relative overflow-hidden p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_22px_55px_-34px_var(--primary)]"
+          >
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/55 to-transparent opacity-50" />
             <p className="text-sm text-muted-foreground">{label}</p>
             <div className="mt-3 flex items-end justify-between gap-3">
-              <p className="text-2xl font-semibold tracking-tight">{value}</p>
+              <p className="font-mono text-2xl font-semibold tracking-[-.045em]">
+                {value}
+              </p>
               <span className="flex items-center text-xs font-medium text-emerald-500">
                 {up ? (
                   <ArrowUpRight className="size-3.5" />
@@ -148,7 +154,7 @@ function DashboardView() {
                   <span
                     key={index}
                     style={{ height: `${height}%` }}
-                    className="flex-1 rounded-t-sm bg-primary/25 last:bg-primary"
+                    className="flex-1 rounded-t-sm bg-primary/25 transition-colors group-hover:bg-primary/35 last:bg-primary"
                   />
                 ),
               )}
@@ -192,19 +198,20 @@ function DashboardView() {
             />
           </svg>
         </Card>
-        <Card className="border-primary/20 bg-primary/[.045] p-5">
+        <Card className="relative overflow-hidden border-primary/30 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--card)_94%,var(--primary)),var(--card))] p-6 shadow-[0_24px_70px_-48px_var(--primary)]">
+          <div className="pointer-events-none absolute -right-10 -top-12 size-40 rounded-full border border-primary/15" />
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Sparkles className="size-4" />
             Nexus Intelligence <Badge tone="blue">Demo insight</Badge>
           </div>
-          <h2 className="mt-6 text-lg font-semibold">
+          <h2 className="relative mt-7 text-xl font-semibold tracking-[-.025em]">
             Trial conversion dropped 14%
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             Users who do not invite another team member within 24 hours convert
             37% less often.
           </p>
-          <div className="mt-6 flex items-center justify-between border-t pt-4 text-xs">
+          <div className="relative mt-6 flex items-center justify-between border-t border-primary/15 pt-4 text-xs">
             <span className="text-muted-foreground">Confidence</span>
             <span className="font-semibold text-primary">94%</span>
           </div>
@@ -606,7 +613,7 @@ export function DemoWorkspace({ view }: { view: DemoView }) {
       </div>
       <div className="flex min-h-[calc(100vh-33px)]">
         <aside
-          className={`${open ? "fixed inset-y-0 left-0 z-50 flex" : "hidden"} w-64 flex-col border-r bg-sidebar p-4 md:flex`}
+          className={`${open ? "fixed inset-y-0 left-0 z-50 flex" : "hidden"} w-64 flex-col border-r border-border/70 bg-sidebar/95 p-4 shadow-[12px_0_45px_-38px_rgba(0,0,0,.55)] backdrop-blur-xl md:flex`}
         >
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -643,14 +650,14 @@ export function DemoWorkspace({ view }: { view: DemoView }) {
             </span>
             <ChevronDown className="size-4 text-muted-foreground" />
           </button>
-          <nav className="mt-6 flex-1 space-y-1" aria-label="Demo navigation">
+          <nav className="mt-6 flex-1 space-y-1.5" aria-label="Demo navigation">
             {navigation.map(({ view: itemView, label, icon: Icon }) => (
               <Link
                 key={itemView}
                 href={`/demo/${itemView}`}
                 onClick={() => setOpen(false)}
                 aria-current={view === itemView ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${view === itemView ? "bg-primary/10 font-medium text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all hover:translate-x-0.5 ${view === itemView ? "bg-primary/10 font-semibold text-primary shadow-[inset_3px_0_0_var(--primary)]" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
                 <Icon className="size-4" />
                 {label}
@@ -678,7 +685,7 @@ export function DemoWorkspace({ view }: { view: DemoView }) {
           />
         ) : null}
         <div className="min-w-0 flex-1">
-          <header className="flex h-16 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur sm:px-6">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/70 bg-background/85 px-4 shadow-[0_8px_30px_-28px_rgba(0,0,0,.45)] backdrop-blur-xl sm:px-6">
             <button
               onClick={() => setOpen(true)}
               className="rounded-lg p-2 hover:bg-muted md:hidden"
@@ -722,7 +729,7 @@ export function DemoWorkspace({ view }: { view: DemoView }) {
               </span>
             </div>
           </header>
-          <main className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8">
+          <main className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8 xl:p-9">
             <CurrentView view={view} />
           </main>
         </div>
