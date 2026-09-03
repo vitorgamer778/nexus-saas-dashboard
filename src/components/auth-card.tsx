@@ -18,6 +18,9 @@ export function AuthCard({
 }) {
   const router = useRouter(),
     [loading, setLoading] = useState(false),
+    [oauthLoading, setOauthLoading] = useState<"google" | "github" | null>(
+      null,
+    ),
     [error, setError] = useState("");
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -72,8 +75,9 @@ export function AuthCard({
           : next,
     );
   };
-  const oauth = async () => {
+  const oauth = async (provider: "google" | "github") => {
     setError("");
+    setOauthLoading(provider);
     let supabase;
     try {
       supabase = createClient();
@@ -81,20 +85,28 @@ export function AuthCard({
       setError(
         "Authentication is temporarily unavailable. Please try again later.",
       );
+      setOauthLoading(null);
       return;
     }
     const authOrigin = getAuthOrigin(location.origin);
     if (!authOrigin) {
       setError("Authentication redirect configuration is invalid.");
+      setOauthLoading(null);
       return;
     }
     const callback = new URL("/auth/callback", authOrigin);
-    callback.searchParams.set("next", next);
+    callback.searchParams.set(
+      "next",
+      mode === "register" ? "/onboarding" : next,
+    );
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
+      provider,
       options: { redirectTo: callback.toString() },
     });
-    if (error) setError(error.message);
+    if (error) {
+      setError(error.message);
+      setOauthLoading(null);
+    }
   };
   return (
     <Card className="w-full max-w-md p-7 shadow-2xl">
@@ -120,15 +132,36 @@ export function AuthCard({
       )}
       {mode !== "forgot" && (
         <>
-          <Button
-            variant="outline"
-            className="w-full"
-            type="button"
-            onClick={oauth}
-          >
-            <GitBranch className="size-4" />
-            Continue with GitHub
-          </Button>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              type="button"
+              disabled={oauthLoading !== null}
+              onClick={() => oauth("google")}
+            >
+              {oauthLoading === "google" ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <GoogleMark />
+              )}
+              Google
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              type="button"
+              disabled={oauthLoading !== null}
+              onClick={() => oauth("github")}
+            >
+              {oauthLoading === "github" ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <GitBranch className="size-4" />
+              )}
+              GitHub
+            </Button>
+          </div>
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             OR CONTINUE WITH EMAIL
@@ -210,5 +243,28 @@ export function AuthCard({
         </Link>
       )}
     </Card>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.6 4.6 0 0 1-2 3v2.6h3.3c1.9-1.8 2.9-4.4 2.9-7.5Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 22c2.7 0 5-.9 6.7-2.3l-3.3-2.6c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.5-4.1H3.1v2.7A10 10 0 0 0 12 22Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M6.5 14a6 6 0 0 1 0-3.9V7.4H3.1a10 10 0 0 0 0 9.3L6.5 14Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 6a5.4 5.4 0 0 1 3.8 1.5l2.9-2.8A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.9 5.4l3.4 2.7A5.9 5.9 0 0 1 12 6Z"
+      />
+    </svg>
   );
 }

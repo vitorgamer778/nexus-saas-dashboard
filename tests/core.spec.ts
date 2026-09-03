@@ -26,6 +26,8 @@ test("auth routes render and security headers are present", async ({
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "GitHub" })).toBeVisible();
 });
 
 test("unsafe callback destination never leaves the application", async ({
