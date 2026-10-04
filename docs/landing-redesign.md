@@ -13,7 +13,7 @@ The page remains a Server Component. Interaction uses CSS, including pointer-awa
 - ESLint, TypeScript and production build pass.
 - Vitest: 26 tests pass.
 - Playwright: 14 desktop/mobile checks pass, covering guarded auth, safe redirects, demo routes, keyboard bypass, reduced motion and overflow.
-- Production dependency audit: zero known vulnerabilities at validation time. Development tooling still has 13 advisories; no forced major-version changes were applied.
+- Production dependency audit: zero known vulnerabilities at validation time. Safe transitive updates reduced development tooling advisories from 13 to 8. These remaining advisories originate in braces 3.0.3 and its dependents; no patched release is available in the registry at validation time. No forced major-version downgrades were applied.
 - Next and its ESLint config updated together from 16.3.3 to 16.3.8. The existing shadcn CLI is now a development dependency. Runtime fast-uri updated through the lockfile.
 
-Changes are local. Deployment, live authenticated database validation, Astraea and Orbit updates are not part of this completed Nexus landing milestone.
+The landing refresh was pushed to main and released through the existing Vercel Git integration on 2026-10-04. Live authenticated database validation is outside this presentation refresh.
