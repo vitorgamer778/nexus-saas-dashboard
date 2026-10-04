@@ -65,3 +65,44 @@ test("demo navigation has no horizontal mobile overflow", async ({ page }) => {
   }));
   expect(widths.document).toBeLessThanOrEqual(widths.viewport);
 });
+
+test("product tour links open the matching read-only screens", async ({
+  page,
+}) => {
+  for (const [name, route, heading] of [
+    ["Explore customers", "/demo/customers", "Customers"],
+    ["Explore analytics", "/demo/analytics", "Analytics"],
+  ]) {
+    await page.goto("/");
+    await page.getByRole("link", { name, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(route));
+    await expect(
+      page.getByRole("heading", { name: heading, exact: true }),
+    ).toBeVisible();
+  }
+});
+
+test("landing supports keyboard bypass, reduced motion and narrow screens", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("link", { name: "Skip to content" }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+  expect(
+    await page
+      .locator(".landing-preview")
+      .evaluate((el) => getComputedStyle(el).transform),
+  ).toBe("none");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await expect(page.locator(".landing-preview img")).toBeVisible();
+});
